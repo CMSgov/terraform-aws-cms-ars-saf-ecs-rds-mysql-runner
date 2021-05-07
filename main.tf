@@ -329,7 +329,9 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
     "portMappings": [],
     "environment": [
       {"name": "s3_bucket_path", "value": "${var.s3_results_bucket}"},
-      
+      {"name": "HOSTNAME", "value": "complete-mysql.cqthqqezazrx.us-east-1.rds.amazonaws.com"},
+      {"name": "PORT", "value": "3306"},
+      {"name": "MYSQL_VERSION", "value": "5.7.33"}
     ],
     "secrets": [
       {"name": "USERNAME", "value": "${local.rds_creds.username}"},
