@@ -283,7 +283,7 @@ resource "aws_cloudwatch_event_rule" "run_command" {
 
 resource "aws_cloudwatch_event_target" "ecs_scheduled_task" {
   target_id = "run-scheduled-task-${var.task_name}-${var.environment}"
-  arn       = aws_ecs_cluster.inspec_cluster.arn
+  arn       = local.ecs_cluster_arn
   rule      = aws_cloudwatch_event_rule.run_command.name
   role_arn  = aws_iam_role.cloudwatch_target_role.arn
 
