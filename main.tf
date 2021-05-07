@@ -1,7 +1,7 @@
 locals {
   awslogs_group   = var.logs_cloudwatch_group_arn == "" ? "/ecs/${var.environment}/${var.app_name}" : split(":", var.logs_cloudwatch_group_arn)[6]
   cloudwatch_arn  = var.logs_cloudwatch_group_arn == "" ? aws_cloudwatch_log_group.main[0].arn : var.logs_cloudwatch_group_arn
-  ecs_cluster_arn = var.ecs_cluster_arn == "" ? aws_ecs_cluster.inspec_cluster.arn : var.ecs_cluster_arn
+  ecs_cluster_arn = var.ecs_cluster_arn == "" ? aws_ecs_cluster.inspec_cluster[0].arn : var.ecs_cluster_arn
   rds_creds = jsondecode(
     data.aws_secretsmanager_secret_version.credentials.secret_string
   )
