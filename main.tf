@@ -176,26 +176,6 @@ resource "aws_iam_role_policy" "cloudwatch_target_role_policy" {
   policy = data.aws_iam_policy_document.cloudwatch_target_role_policy_doc.json
 }
 
-# ECS Task Role
-data "aws_iam_policy_document" "task_role_policy_doc" {
-  # Allow access to the environment specific app secrets
-  statement {
-    actions = [
-      "ssm:GetParametersByPath",
-    ]
-
-    resources = ["arn:${data.aws_partition.current.partition}:ssm:*:*:${var.secret_path}/*"]
-  }
-
-  statement {
-    actions = [
-      "kms:Decrypt"
-    ]
-
-    resources = [var.kms_key_arn]
-  }
-}
-
 resource "aws_iam_role_policy_attachment" "read_only_everything" {
   policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
   role       = aws_iam_role.task_role.name
@@ -205,12 +185,6 @@ resource "aws_iam_role" "task_role" {
   name               = "ecs-task-role-${var.app_name}-${var.environment}-${var.task_name}"
   description        = "Role allowing container definition to execute"
   assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
-}
-
-resource "aws_iam_role_policy" "task_role_policy" {
-  name   = "${aws_iam_role.task_role.name}-policy"
-  role   = aws_iam_role.task_role.name
-  policy = data.aws_iam_policy_document.task_role_policy_doc.json
 }
 
 ### ECS Task Execution Role https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html
@@ -259,7 +233,18 @@ data "aws_iam_policy_document" "task_execution_role_policy_doc" {
     ]
 
     resources = [
-      "arn:${data.aws_partition.current.partition}:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${var.app_name}-${var.environment}*",
+      var.secret_mysql_password_arn,
+      var.secret_mysql_username_arn
+    ]
+  }
+
+  statement {
+    actions = [
+      "kms:Decrypt"
+    ]
+
+    resources = [
+      var.kms_key_arn
     ]
   }
 }

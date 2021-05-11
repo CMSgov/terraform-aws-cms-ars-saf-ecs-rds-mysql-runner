@@ -8,11 +8,6 @@ variable "task_name" {
   description = "Name of the task to be run"
 }
 
-variable "secret_path" {
-  type        = string
-  description = "path to parameter store for pulling secrets"
-}
-
 variable "kms_key_arn" {
   type        = string
   description = "KMS key for secret decryption"
