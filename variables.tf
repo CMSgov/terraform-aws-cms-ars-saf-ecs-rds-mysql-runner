@@ -8,6 +8,16 @@ variable "task_name" {
   description = "Name of the task to be run"
 }
 
+variable "secret_path" {
+  type        = string
+  description = "path to parameter store for pulling secrets"
+}
+
+variable "kms_key_arn" {
+  type        = string
+  description = "KMS key for secret decryption"
+}
+
 variable "ecs_cluster_arn" {
   description = "ECS cluster ARN to use for running this profile"
   type        = string
@@ -79,4 +89,29 @@ variable "s3_results_bucket" {
   type        = string
   description = "Bucket to store scan results"
   default     = ""
+}
+
+variable "secret_mysql_username_arn" {
+  type        = string
+  description = "Mysql database username"
+}
+
+variable "secret_mysql_password_arn" {
+  type        = string
+  description = "Mysql database password"
+}
+
+variable "mysql_hostname" {
+  type        = string
+  description = "Mysql hostname"
+}
+
+variable "mysql_port" {
+  type        = string
+  description = "Mysql port"
+}
+
+variable "mysql_version" {
+  type        = string
+  description = "Mysql version"
 }

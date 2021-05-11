@@ -2,9 +2,6 @@ locals {
   awslogs_group   = var.logs_cloudwatch_group_arn == "" ? "/ecs/${var.environment}/${var.app_name}" : split(":", var.logs_cloudwatch_group_arn)[6]
   cloudwatch_arn  = var.logs_cloudwatch_group_arn == "" ? aws_cloudwatch_log_group.main[0].arn : var.logs_cloudwatch_group_arn
   ecs_cluster_arn = var.ecs_cluster_arn == "" ? aws_ecs_cluster.inspec_cluster[0].arn : var.ecs_cluster_arn
-  rds_creds = jsondecode(
-    data.aws_secretsmanager_secret_version.credentials.secret_string
-  )
 }
 
 data "aws_caller_identity" "current" {}
@@ -187,7 +184,15 @@ data "aws_iam_policy_document" "task_role_policy_doc" {
       "ssm:GetParametersByPath",
     ]
 
-    resources = ["arn:${data.aws_partition.current.partition}:ssm:*:*:parameter/${var.app_name}-${var.environment}/*"]
+    resources = ["arn:${data.aws_partition.current.partition}:ssm:*:*:${var.secret_path}/*"]
+  }
+
+  statement {
+    actions = [
+      "kms:Decrypt"
+    ]
+
+    resources = [var.kms_key_arn]
   }
 }
 
@@ -304,10 +309,6 @@ resource "aws_cloudwatch_event_target" "ecs_scheduled_task" {
 
 # ECS task details
 
-data "aws_secretsmanager_secret_version" "credentials" {
-  secret_id = "macbis/dev/saf-rds/access-credentials"
-}
-
 resource "aws_ecs_task_definition" "scheduled_task_def" {
   family        = "${var.app_name}-${var.environment}-${var.task_name}"
   network_mode  = "awsvpc"
@@ -329,14 +330,14 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
     "portMappings": [],
     "environment": [
       {"name": "s3_bucket_path", "value": "${var.s3_results_bucket}"},
-      {"name": "HOSTNAME", "value": "complete-mysql.cqthqqezazrx.us-east-1.rds.amazonaws.com"},
-      {"name": "PORT", "value": "3306"},
-      {"name": "MYSQL_VERSION", "value": "5.7.33"}
+      {"name": "HOSTNAME", "value": "${var.mysql_hostname}"},
+      {"name": "PORT", "value": "${var.mysql_port}"},
+      {"name": "MYSQL_VERSION", "value": "${var.mysql_version}"}
     ],
     "secrets": [
-      {"name": "USERNAME", "value": "${local.rds_creds.username}"},
-      {"name": "PASSWORD", "value": "${local.rds_creds.password}"},
-    ]
+      {"name": "USERNAME", "valueFrom": "${var.secret_mysql_username_arn}"},
+      {"name": "PASSWORD", "valueFrom": "${var.secret_mysql_password_arn}"}
+    ],
     "logConfiguration": {
       "logDriver": "awslogs",
       "secretOptions": null,
