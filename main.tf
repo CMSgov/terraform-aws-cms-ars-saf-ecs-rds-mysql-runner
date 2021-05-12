@@ -304,41 +304,43 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
   memory                   = "1024"
   execution_role_arn       = join("", aws_iam_role.task_execution_role.*.arn)
 
-  container_definitions = <<DEFINITION
-[
-  {
-    "name": "${var.app_name}-${var.environment}-${var.task_name}",
-    "image": "${var.repo_url}:${var.repo_tag}",
-    "cpu": 128,
-    "memory": 1024,
-    "essential": true,
-    "portMappings": [],
-    "environment": [
-      {"name": "s3_bucket_path", "value": "${var.s3_results_bucket}"},
-      {"name": "HOSTNAME", "value": "${var.mysql_hostname}"},
-      {"name": "PORT", "value": "${var.mysql_port}"},
-      {"name": "MYSQL_VERSION", "value": "${var.mysql_version}"}
+  container_definitions = jsonencode([
+    {
+    name = "${var.app_name}-${var.environment}-${var.task_name}",
+    image = "${var.repo_url}:${var.repo_tag}",
+    cpu = 128,
+    memory = 1024,
+    essential = true,
+    portMappings = [],
+    environment = [
+      {name = "s3_bucket_path", value = var.s3_results_bucket},
+      {name = "HOSTNAME", value = var.mysql_hostname},
+      {name = "PORT", value = var.mysql_port},
+      {name = "MYSQL_VERSION", value = [join(",",var.mysql_version)]},
+      {name = "MYSQL_USERS", value = [join(",",var.mysql_users)]},
+      {name = "WORKER_CONFIGURED", value = var.worker_configured},
+      {name = "ADMIN_USERS", value = [join(",",var.admin_users)]},
+      {name = "READ_WRITE_USERS", value = [join(",",var.read_write_users)]}
     ],
-    "secrets": [
-      {"name": "USERNAME", "valueFrom": "${var.secret_mysql_username_arn}"},
-      {"name": "PASSWORD", "valueFrom": "${var.secret_mysql_password_arn}"}
+    secrets = [
+      {name = "USERNAME", valueFrom = var.secret_mysql_username_arn},
+      {name = "PASSWORD", valueFrom = var.secret_mysql_password_arn}
     ],
-    "logConfiguration": {
-      "logDriver": "awslogs",
-      "secretOptions": null,
-      "options": {
-        "awslogs-group": "${local.awslogs_group}",
-        "awslogs-region": "${data.aws_region.current.name}",
-        "awslogs-stream-prefix": "${var.app_name}"
+    logConfiguration = {
+      logDriver = "awslogs",
+      secretOptions = null,
+      options = {
+        awslogs-group = local.awslogs_group,
+        awslogs-region = data.aws_region.current.name,
+        awslogs-stream-prefix = var.app_name
       }
     },
-    "mountPoints": [],
-    "volumesFrom": [],
-    "entryPoint": [
+    mountPoints = [],
+    volumesFrom = [],
+    entryPoint = [
             "./profiles/scriptRunner.sh"
           ]
   }
-]
-DEFINITION
+  ])
 }
 

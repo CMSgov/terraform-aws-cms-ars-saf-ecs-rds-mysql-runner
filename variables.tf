@@ -107,6 +107,26 @@ variable "mysql_port" {
 }
 
 variable "mysql_version" {
-  type        = string
+  type        = list(string)
   description = "Mysql version"
+}
+
+variable "mysql_users" {
+  type        = list(string)
+  description = "Mysql users"
+}
+
+variable "worker_configured" {
+  type        = bool
+  description = "Mysql worker configuration - true/false"
+}
+
+variable "admin_users" {
+  type        = list(string)
+  description = "Mysql admin users"
+}
+
+variable "read_write_users" {
+  type        = list(string)
+  description = "Mysql read write users"
 }
