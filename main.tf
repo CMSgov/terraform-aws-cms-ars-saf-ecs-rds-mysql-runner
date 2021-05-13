@@ -314,7 +314,6 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
     portMappings = [],
     environment = [
       {name = "s3_bucket_path", value = var.s3_results_bucket},
-      {name = "HOSTNAME", value = var.mysql_hostname},
       {name = "PORT", value = var.mysql_port},
       {name = "MYSQL_VERSION", value = [join(",",var.mysql_version)]},
       {name = "MYSQL_USERS", value = [join(",",var.mysql_users)]},
@@ -324,7 +323,8 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
     ],
     secrets = [
       {name = "USERNAME", valueFrom = var.secret_mysql_username_arn},
-      {name = "PASSWORD", valueFrom = var.secret_mysql_password_arn}
+      {name = "PASSWORD", valueFrom = var.secret_mysql_password_arn},
+      {name = "HOSTNAME", valueFrom = var.secret_mysql_hostname_arn},
     ],
     logConfiguration = {
       logDriver = "awslogs",

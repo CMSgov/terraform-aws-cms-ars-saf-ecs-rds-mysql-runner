@@ -96,9 +96,9 @@ variable "secret_mysql_password_arn" {
   description = "Mysql database password"
 }
 
-variable "mysql_hostname" {
+variable "secret_mysql_hostname_arn" {
   type        = string
-  description = "Mysql hostname"
+  description = "Mysql database hostname"
 }
 
 variable "mysql_port" {
@@ -114,6 +114,7 @@ variable "mysql_version" {
 variable "mysql_users" {
   type        = list(string)
   description = "Mysql users"
+  default     = []
 }
 
 variable "worker_configured" {
