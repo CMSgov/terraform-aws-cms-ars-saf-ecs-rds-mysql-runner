@@ -234,7 +234,8 @@ data "aws_iam_policy_document" "task_execution_role_policy_doc" {
 
     resources = [
       var.secret_mysql_password_arn,
-      var.secret_mysql_username_arn
+      var.secret_mysql_username_arn,
+      var.secret_mysql_hostname_arn
     ]
   }
 
@@ -315,11 +316,11 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
     environment = [
       {name = "s3_bucket_path", value = var.s3_results_bucket},
       {name = "PORT", value = var.mysql_port},
-      {name = "MYSQL_VERSION", value = [join(",",var.mysql_version)]},
-      {name = "MYSQL_USERS", value = [join(",",var.mysql_users)]},
-      {name = "WORKER_CONFIGURED", value = var.worker_configured},
-      {name = "ADMIN_USERS", value = [join(",",var.admin_users)]},
-      {name = "READ_WRITE_USERS", value = [join(",",var.read_write_users)]}
+      {name = "MYSQL_VERSION", value = var.mysql_version},
+      {name = "MYSQL_USERS", value = "[${join(",",var.mysql_users)}]"},
+      {name = "WORKER_CONFIGURED", value = tostring(var.worker_configured)},
+      {name = "ADMIN_USERS", value = "[${join(",",var.admin_users)}]"},
+      {name = "READ_WRITE_USERS", value = "[${join(",",var.read_write_users)}]"}
     ],
     secrets = [
       {name = "USERNAME", valueFrom = var.secret_mysql_username_arn},

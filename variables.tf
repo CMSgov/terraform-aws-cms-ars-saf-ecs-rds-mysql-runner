@@ -107,7 +107,7 @@ variable "mysql_port" {
 }
 
 variable "mysql_version" {
-  type        = list(string)
+  type        = string
   description = "Mysql version"
 }
 
