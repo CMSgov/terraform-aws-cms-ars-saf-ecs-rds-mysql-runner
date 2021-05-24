@@ -305,43 +305,26 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
   memory                   = "1024"
   execution_role_arn       = join("", aws_iam_role.task_execution_role.*.arn)
 
-  container_definitions = jsonencode([
+  container_definitions = templatefile("${path.module}/container-definitions.tpl",
     {
-    name = "${var.app_name}-${var.environment}-${var.task_name}",
-    image = "${var.repo_url}:${var.repo_tag}",
-    cpu = 128,
-    memory = 1024,
-    essential = true,
-    portMappings = [],
-    environment = [
-      {name = "s3_bucket_path", value = var.s3_results_bucket},
-      {name = "PORT", value = var.mysql_port},
-      {name = "MYSQL_VERSION", value = var.mysql_version},
-      {name = "MYSQL_USERS", value = "[${join(",",var.mysql_users)}]"},
-      {name = "WORKER_CONFIGURED", value = tostring(var.worker_configured)},
-      {name = "ADMIN_USERS", value = "[${join(",",var.admin_users)}]"},
-      {name = "READ_WRITE_USERS", value = "[${join(",",var.read_write_users)}]"}
-    ],
-    secrets = [
-      {name = "USERNAME", valueFrom = var.secret_mysql_username_arn},
-      {name = "PASSWORD", valueFrom = var.secret_mysql_password_arn},
-      {name = "HOSTNAME", valueFrom = var.secret_mysql_hostname_arn},
-    ],
-    logConfiguration = {
-      logDriver = "awslogs",
-      secretOptions = null,
-      options = {
-        awslogs-group = local.awslogs_group,
-        awslogs-region = data.aws_region.current.name,
-        awslogs-stream-prefix = var.app_name
-      }
-    },
-    mountPoints = [],
-    volumesFrom = [],
-    entryPoint = [
-            "./profiles/scriptRunner.sh"
-          ]
-  }
-  ])
+      app_name = var.app_name,
+      environment = var.environment,
+      task_name = var.task_name,
+      awslogs_group = local.awslogs_group,
+      repo_url = var.repo_url,
+      repo_tag = var.repo_tag,
+      s3_results_bucket = var.s3_results_bucket,
+      mysql_port = var.mysql_port,
+      mysql_version = var.mysql_version,
+      mysql_users = var.mysql_users,
+      worker_configured = var.worker_configured,
+      admin_users = var.admin_users,
+      read_write_users = var.read_write_users,
+      secretsManager_arn = var.secret_rds_credentials_arn,
+      username_arn       = var.secret_mysql_username_arn,
+      password_arn       = var.secret_mysql_password_arn,
+      hostname_arn       = var.secret_mysql_hostname_arn
+    }
+  )
 }
 

@@ -86,19 +86,28 @@ variable "s3_results_bucket" {
   default     = ""
 }
 
+variable "secret_rds_credentials_arn" {
+  type        = string
+  description = "ARN of RDS credentials stored in AWS Secrets Manager"
+  default     = ""
+}
+
 variable "secret_mysql_username_arn" {
   type        = string
-  description = "Mysql database username"
+  description = "ARN of Mysql database username"
+  default     = ""
 }
 
 variable "secret_mysql_password_arn" {
   type        = string
-  description = "Mysql database password"
+  description = "ARN of Mysql database password"
+  default     = ""
 }
 
 variable "secret_mysql_hostname_arn" {
   type        = string
-  description = "Mysql database hostname"
+  description = "ARN of Mysql database hostname"
+  default     = ""
 }
 
 variable "mysql_port" {
