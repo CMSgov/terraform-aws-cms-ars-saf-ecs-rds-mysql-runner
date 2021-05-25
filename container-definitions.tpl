@@ -31,7 +31,7 @@
       "secretOptions": null,
       "options": {
         "awslogs-group": "${awslogs_group}",
-        "awslogs-region": "awslogs_region",
+        "awslogs-region": "${awslogs_region}",
         "awslogs-stream-prefix": "${app_name}"
       }
     },

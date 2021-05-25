@@ -187,69 +187,6 @@ resource "aws_iam_role" "task_role" {
   assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
 }
 
-### ECS Task Execution Role https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html
-# Allows ECS to Pull down the ECR Image and write Logs to CloudWatch
-
-data "aws_iam_policy_document" "task_execution_role_policy_doc" {
-  statement {
-    actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-    ]
-
-    resources = ["${local.cloudwatch_arn}:*"]
-  }
-
-  statement {
-    actions = [
-      "ecr:GetAuthorizationToken",
-    ]
-
-    resources = ["*"]
-  }
-
-  statement {
-    actions = [
-      "ecr:BatchCheckLayerAvailability",
-      "ecr:GetDownloadUrlForLayer",
-      "ecr:BatchGetImage",
-    ]
-
-    resources = [var.repo_arn]
-  }
-
-  statement {
-    actions = [
-      "secretsmanager:GetSecretValue",
-    ]
-    resources = [
-      "arn:${data.aws_partition.current.partition}:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:/${var.app_name}-${var.environment}*",
-    ]
-  }
-
-  statement {
-    actions = [
-      "ssm:GetParameters",
-    ]
-
-    resources = [
-      var.secret_mysql_password_arn,
-      var.secret_mysql_username_arn,
-      var.secret_mysql_hostname_arn
-    ]
-  }
-
-  statement {
-    actions = [
-      "kms:Decrypt"
-    ]
-
-    resources = [
-      var.kms_key_arn
-    ]
-  }
-}
-
 resource "aws_iam_role" "task_execution_role" {
   name               = "ecs-task-exec-role-${var.app_name}-${var.environment}-${var.task_name}"
   description        = "Role allowing ECS tasks to execute"
@@ -259,7 +196,20 @@ resource "aws_iam_role" "task_execution_role" {
 resource "aws_iam_role_policy" "task_execution_role_policy" {
   name   = "${aws_iam_role.task_execution_role.name}-policy"
   role   = aws_iam_role.task_execution_role.name
-  policy = data.aws_iam_policy_document.task_execution_role_policy_doc.json
+  policy = templatefile("${path.module}/parameter-store-policy.tpl", {
+    cloudwatch_arn     = local.cloudwatch_arn,
+    repo_arn           = var.repo_arn,
+    partition          = data.aws_partition.current.partition,
+    region             = data.aws_region.current.name,
+    caller_id          = data.aws_caller_identity.current.account_id,
+    app_name           = var.app_name,
+    environment        = var.environment,
+    secretsManager_arn = var.secret_rds_credentials_arn,
+    username_arn       = var.secret_mysql_username_arn,
+    password_arn       = var.secret_mysql_password_arn,
+    hostname_arn       = var.secret_mysql_hostname_arn,
+    kms_key_arn        = var.kms_key_arn
+  })
 }
 
 #
@@ -311,6 +261,7 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
       environment = var.environment,
       task_name = var.task_name,
       awslogs_group = local.awslogs_group,
+      awslogs_region = data.aws_region.current.name,
       repo_url = var.repo_url,
       repo_tag = var.repo_tag,
       s3_results_bucket = var.s3_results_bucket,
