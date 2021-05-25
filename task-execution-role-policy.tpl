@@ -35,8 +35,10 @@
         "secretsmanager:GetSecretValue"
       ],
       "Resource": [
-        "arn:${partition}:secretsmanager:${region}:${caller_id}:secret:/${app_name}-${environment}*",
-        "arn:${partition}:secretsmanager:${region}:${caller_id}:secret:macbis/${environment}/saf-rds*"
+        %{ if secretsManager_arn != ""}
+        "${secretsManager_arn}",
+        %{ endif }
+        "arn:${partition}:secretsmanager:${region}:${caller_id}:secret:/${app_name}-${environment}*"
       ]
     },
     %{ if secretsManager_arn == ""}
