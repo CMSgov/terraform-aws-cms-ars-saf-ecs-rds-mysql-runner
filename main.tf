@@ -196,7 +196,7 @@ resource "aws_iam_role" "task_execution_role" {
 resource "aws_iam_role_policy" "task_execution_role_policy" {
   name   = "${aws_iam_role.task_execution_role.name}-policy"
   role   = aws_iam_role.task_execution_role.name
-  policy = templatefile("${path.module}/parameter-store-policy.tpl", {
+  policy = templatefile("${path.module}/task-execution-role-policy.tpl", {
     cloudwatch_arn     = local.cloudwatch_arn,
     repo_arn           = var.repo_arn,
     partition          = data.aws_partition.current.partition,
