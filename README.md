@@ -32,7 +32,7 @@ module "ecs_saf_rds_mysql_runner" {
   secret_rds_credentials_arn    = data.aws_secretsmanager_secret_version.rds_credentials.arn
 
   // if using AWS Parameter Store
-  kms_key_arn                     = aws_kms_key.kms_key_for_rds_secrets.arn
+  # parameter_store_enc_kms_key   = aws_kms_key.kms_key_for_rds_secrets.arn
   # secret_mysql_username_arn     = aws_ssm_parameter.username.arn
   # secret_mysql_password_arn     = aws_ssm_parameter.password.arn
   # secret_mysql_hostname_arn     = aws_ssm_parameter.hostname.arn

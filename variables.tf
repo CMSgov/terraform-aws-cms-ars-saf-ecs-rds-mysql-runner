@@ -8,9 +8,10 @@ variable "task_name" {
   description = "Name of the task to be run"
 }
 
-variable "kms_key_arn" {
+variable "parameter_store_enc_kms_key" {
   type        = string
-  description = "KMS key for secret decryption"
+  description = "KMS key for parameter store secret decryption"
+  default     = ""
 }
 
 variable "ecs_cluster_arn" {

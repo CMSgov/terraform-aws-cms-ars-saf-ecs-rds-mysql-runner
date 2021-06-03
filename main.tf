@@ -208,7 +208,7 @@ resource "aws_iam_role_policy" "task_execution_role_policy" {
     username_arn       = var.secret_mysql_username_arn,
     password_arn       = var.secret_mysql_password_arn,
     hostname_arn       = var.secret_mysql_hostname_arn,
-    kms_key_arn        = var.kms_key_arn
+    parameter_store_enc_kms_key        = var.parameter_store_enc_kms_key
   })
 }
 
