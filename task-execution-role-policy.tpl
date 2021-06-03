@@ -40,8 +40,8 @@
         %{ endif }
         "arn:${partition}:secretsmanager:${region}:${caller_id}:secret:/${app_name}-${environment}*"
       ]
-    },
     %{ if secretsManager_arn == ""}
+    },
     {
       "Sid": "",
       "Effect": "Allow",
@@ -54,7 +54,6 @@
         "${hostname_arn}"
       ]
     },
-    %{ endif }
     {
       "Sid": "",
       "Effect": "Allow",
@@ -62,8 +61,9 @@
         "kms:Decrypt"
       ],
       "Resource": [
-        "${kms_key_arn}"
+        "${parameter_store_enc_kms_key}"
       ]
+    %{ endif }
     }
   ]
 }
