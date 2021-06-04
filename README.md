@@ -49,12 +49,11 @@ module "ecs_saf_rds_mysql_runner" {
 
 You must provide EITHER an AWS Secrets Manager secret (secret_rds_credentials_arn) OR AWS Parameter Store secrets (secret_mysql_username_arn, secret_mysql_password_arn, secret_mysql_hostname_arn) and a corresponding AWS KMS key, as shown above.
 
-In addition, the mysql_port, version, users, etc. are also required.
+In addition, the logs_cloudwatch_group_arn, mysql_port, version, users, etc. are also required.
 ## Optional Parameters
 
 | Name | Default Value | Description |
 |------|---------|---------|
-| logs_cloudwatch_group_arn | "" | CloudWatch log group arn, overrides values of logs_cloudwatch_retention & logs_cloudwatch_group |
 | ecs_cluster_arn | "" | You can provide your own ECS Cluster ARN to prevent a new provisioning of one for this task |
 | s3_results_bucket | "" | Bucket value to store scan results, if value is a valid bucket path json files will be streamed to it. |
 
