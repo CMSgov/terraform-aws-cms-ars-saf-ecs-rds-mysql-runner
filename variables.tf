@@ -37,8 +37,7 @@ variable "logs_cloudwatch_retention" {
 }
 
 variable "logs_cloudwatch_group_arn" {
-  description = "CloudWatch log group arn, overrides values of logs_cloudwatch_retention & logs_cloudwatch_group"
-  default     = ""
+  description = "CloudWatch log group arn for container logs"
   type        = string
 }
 
