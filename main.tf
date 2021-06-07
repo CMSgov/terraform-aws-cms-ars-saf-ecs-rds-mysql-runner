@@ -1,6 +1,5 @@
 locals {
-  awslogs_group   = var.logs_cloudwatch_group_arn == "" ? "/ecs/${var.environment}/${var.app_name}" : split(":", var.logs_cloudwatch_group_arn)[6]
-  cloudwatch_arn  = var.logs_cloudwatch_group_arn == "" ? aws_cloudwatch_log_group.main[0].arn : var.logs_cloudwatch_group_arn
+  awslogs_group =   split(":", var.logs_cloudwatch_group_arn)[6]
   ecs_cluster_arn = var.ecs_cluster_arn == "" ? aws_ecs_cluster.inspec_cluster[0].arn : var.ecs_cluster_arn
 }
 
@@ -82,18 +81,6 @@ data "aws_iam_policy_document" "events_assume_role_policy" {
   }
 }
 
-resource "aws_kms_key" "log_enc_key" {
-  description         = "KMS key for encrypting logs"
-  enable_key_rotation = true
-  policy              = data.aws_iam_policy_document.cloudwatch_logs_allow_kms.json
-  count               = var.logs_cloudwatch_group_arn == "" ? 1 : 0 // do not create resource if cloudwatch log group arn is supplied as a variable
-
-
-  tags = {
-    Automation = "Terraform"
-  }
-}
-
 resource "aws_ecs_cluster" "inspec_cluster" {
   name = "${var.app_name}-inspec"
 
@@ -105,22 +92,6 @@ resource "aws_ecs_cluster" "inspec_cluster" {
     create_before_destroy = true
   }
   count = var.ecs_cluster_arn == "" ? 1 : 0
-}
-
-#  ecs service components
-
-resource "aws_cloudwatch_log_group" "main" {
-  name              = local.awslogs_group
-  retention_in_days = var.logs_cloudwatch_retention
-
-  kms_key_id = aws_kms_key.log_enc_key[0].arn
-  count      = var.logs_cloudwatch_group_arn == "" ? 1 : 0 // do not create resource if it is supplied as a variable
-
-  tags = {
-    Name        = "${var.app_name}-${var.environment}"
-    Environment = var.environment
-    Automation  = "Terraform"
-  }
 }
 
 # SG - ECS
@@ -197,7 +168,7 @@ resource "aws_iam_role_policy" "task_execution_role_policy" {
   name   = "${aws_iam_role.task_execution_role.name}-policy"
   role   = aws_iam_role.task_execution_role.name
   policy = templatefile("${path.module}/task-execution-role-policy.tpl", {
-    cloudwatch_arn     = local.cloudwatch_arn,
+    cloudwatch_arn     = var.logs_cloudwatch_group_arn,
     repo_arn           = var.repo_arn,
     partition          = data.aws_partition.current.partition,
     region             = data.aws_region.current.name,
