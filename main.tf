@@ -1,6 +1,5 @@
 locals {
   awslogs_group =   split(":", var.logs_cloudwatch_group_arn)[6]
-  ecs_cluster_arn = var.ecs_cluster_arn == "" ? aws_ecs_cluster.inspec_cluster[0].arn : var.ecs_cluster_arn
 }
 
 data "aws_caller_identity" "current" {}
@@ -79,19 +78,6 @@ data "aws_iam_policy_document" "events_assume_role_policy" {
 
     effect = "Allow"
   }
-}
-
-resource "aws_ecs_cluster" "inspec_cluster" {
-  name = "${var.app_name}-inspec"
-
-  tags = {
-    Environment = var.environment
-    Automation  = "Terraform"
-  }
-  lifecycle {
-    create_before_destroy = true
-  }
-  count = var.ecs_cluster_arn == "" ? 1 : 0
 }
 
 # SG - ECS
@@ -195,7 +181,7 @@ resource "aws_cloudwatch_event_rule" "run_command" {
 
 resource "aws_cloudwatch_event_target" "ecs_scheduled_task" {
   target_id = "run-scheduled-task-${var.task_name}-${var.environment}"
-  arn       = local.ecs_cluster_arn
+  arn       = var.ecs_cluster_arn
   rule      = aws_cloudwatch_event_rule.run_command.name
   role_arn  = aws_iam_role.cloudwatch_target_role.arn
 

@@ -17,7 +17,6 @@ variable "parameter_store_enc_kms_key" {
 variable "ecs_cluster_arn" {
   description = "ECS cluster ARN to use for running this profile"
   type        = string
-  default     = ""
 }
 
 variable "ecs_vpc_id" {
