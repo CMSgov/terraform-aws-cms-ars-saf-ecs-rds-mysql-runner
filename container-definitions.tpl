@@ -9,6 +9,9 @@
     "environment": [
       {"name": "s3_bucket_path", "value": "${s3_results_bucket}"},
       {"name": "PORT", "value": "${mysql_port}"},
+      {"name": "RDSARN", "value": "${rdsARN}"},
+      {"name": "PRODUCTARN", "value": "${productARN}"},
+      {"name": "ACCOUNTID", "value": "${accountID}"},
       {"name": "MYSQL_VERSION", "value": "${mysql_version}"},
       {"name": "MYSQL_USERS", "value": "[${join(",",mysql_users)}]"},
       {"name": "WORKER_CONFIGURED", "value": "${tostring(worker_configured)}"},

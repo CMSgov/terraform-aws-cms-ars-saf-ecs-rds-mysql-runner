@@ -166,6 +166,7 @@ resource "aws_iam_role_policy" "task_execution_role_policy" {
     password_arn       = var.secret_mysql_password_arn,
     hostname_arn       = var.secret_mysql_hostname_arn,
     parameter_store_enc_kms_key        = var.parameter_store_enc_kms_key
+    enable_securityhub_collector = var.enable_security_hub_integration
   })
 }
 
@@ -214,6 +215,9 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
 
   container_definitions = templatefile("${path.module}/container-definitions.tpl",
     {
+      accountID = data.aws_caller_identity.current.account_id,
+      productARN = "arn:aws:securityhub:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:product/${data.aws_caller_identity.current.account_id}/default",
+      rdsARN = var.rds_arn,
       app_name = var.app_name,
       environment = var.environment,
       task_name = var.task_name,

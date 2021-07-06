@@ -64,6 +64,16 @@
         "${parameter_store_enc_kms_key}"
       ]
     %{ endif }
+    %{ if enable_securityhub_collector == true}
+    },
+    {
+        "Sid": "SecurityHubConnector",
+        "Effect": "Allow",
+        "Action": [
+         "securityhub:BatchImportFindings"
+        ],
+        "Resource": "*"
+     %{ endif }
     }
   ]
 }

@@ -29,6 +29,17 @@ variable "ecs_subnet_ids" {
   type        = list(string)
 }
 
+variable "enable_security_hub_integration" {
+  description = "Bool flag to enable or disable security hub integration"
+  type = bool
+  default = false
+}
+
+variable "rds_arn" {
+  description = "Arn of the RDS instance"
+  type = string
+}
+
 variable "logs_cloudwatch_retention" {
   description = "Number of days you want to retain log events in the log group"
   default     = 731 //  two years
