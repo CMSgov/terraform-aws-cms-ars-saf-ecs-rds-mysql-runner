@@ -138,6 +138,28 @@ resource "aws_iam_role_policy_attachment" "read_only_everything" {
   role       = aws_iam_role.task_role.name
 }
 
+resource "aws_iam_policy" "security_hub_import" {
+  name   = "security-hub-import"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement= [
+      {
+        Action = [
+          "securityhub:BatchImportFindings",
+        ]
+        Effect = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "securityhub_batch_import" {
+  role       = aws_iam_role.task_role.name
+  policy_arn = aws_iam_policy.security_hub_import.arn
+}
+
+
 resource "aws_iam_role" "task_role" {
   name               = "ecs-task-role-${var.app_name}-${var.environment}-${var.task_name}"
   description        = "Role allowing container definition to execute"
