@@ -133,62 +133,28 @@ resource "aws_iam_role_policy" "cloudwatch_target_role_policy" {
   policy = data.aws_iam_policy_document.cloudwatch_target_role_policy_doc.json
 }
 
-resource "aws_iam_role_policy_attachment" "read_only_everything" {
-  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
-  role       = aws_iam_role.task_role.name
-}
-
-resource "aws_iam_policy" "security_hub_import" {
-  name = "security-hub-import"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "securityhub:BatchImportFindings",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "securityhub_batch_import" {
-  role       = aws_iam_role.task_role.name
-  policy_arn = aws_iam_policy.security_hub_import.arn
-}
-
-
 resource "aws_iam_role" "task_role" {
   name               = "ecs-task-role-${var.app_name}-${var.environment}-${var.task_name}"
   description        = "Role allowing container definition to execute"
   assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
 }
 
-resource "aws_iam_role" "task_execution_role" {
-  name               = "ecs-task-exec-role-${var.app_name}-${var.environment}-${var.task_name}"
-  description        = "Role allowing ECS tasks to execute"
-  assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
-}
-
 resource "aws_iam_role_policy" "task_execution_role_policy" {
-  name = "${aws_iam_role.task_execution_role.name}-policy"
-  role = aws_iam_role.task_execution_role.name
+  name = "${aws_iam_role.task_role.name}-policy"
+  role = aws_iam_role.task_role.name
   policy = templatefile("${path.module}/task-execution-role-policy.tpl", {
-    cloudwatch_arn               = var.logs_cloudwatch_group_arn,
-    repo_arn                     = var.repo_arn,
-    partition                    = data.aws_partition.current.partition,
-    region                       = data.aws_region.current.name,
-    caller_id                    = data.aws_caller_identity.current.account_id,
-    app_name                     = var.app_name,
-    environment                  = var.environment,
-    secretsManager_arn           = var.secret_rds_credentials_arn,
-    username_arn                 = var.secret_mysql_username_arn,
-    password_arn                 = var.secret_mysql_password_arn,
-    hostname_arn                 = var.secret_mysql_hostname_arn,
-    parameter_store_enc_kms_key  = var.parameter_store_enc_kms_key
-    enable_securityhub_collector = var.enable_security_hub_integration
+    cloudwatch_arn              = var.logs_cloudwatch_group_arn,
+    repo_arn                    = var.repo_arn,
+    partition                   = data.aws_partition.current.partition,
+    region                      = data.aws_region.current.name,
+    caller_id                   = data.aws_caller_identity.current.account_id,
+    app_name                    = var.app_name,
+    environment                 = var.environment,
+    secretsManager_arn          = var.secret_rds_credentials_arn,
+    username_arn                = var.secret_mysql_username_arn,
+    password_arn                = var.secret_mysql_password_arn,
+    hostname_arn                = var.secret_mysql_hostname_arn,
+    parameter_store_enc_kms_key = var.parameter_store_enc_kms_key
   })
 }
 
@@ -233,7 +199,7 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "1024"
-  execution_role_arn       = join("", aws_iam_role.task_execution_role.*.arn)
+  execution_role_arn       = aws_iam_role.task_role.arn
 
   container_definitions = templatefile("${path.module}/container-definitions.tpl",
     {
@@ -261,4 +227,3 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
     }
   )
 }
-
