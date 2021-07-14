@@ -31,13 +31,13 @@ variable "ecs_subnet_ids" {
 
 variable "enable_security_hub_integration" {
   description = "Bool flag to enable or disable security hub integration"
-  type = bool
-  default = false
+  type        = bool
+  default     = false
 }
 
 variable "rds_arn" {
   description = "Arn of the RDS instance"
-  type = string
+  type        = string
 }
 
 variable "logs_cloudwatch_retention" {
