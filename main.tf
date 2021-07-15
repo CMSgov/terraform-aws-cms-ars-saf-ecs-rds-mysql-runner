@@ -139,10 +139,10 @@ resource "aws_iam_role" "task_role" {
   assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
 }
 
-resource "aws_iam_role_policy" "task_execution_role_policy" {
+resource "aws_iam_role_policy" "task_role_policy" {
   name = "${aws_iam_role.task_role.name}-policy"
   role = aws_iam_role.task_role.name
-  policy = templatefile("${path.module}/task-execution-role-policy.tpl", {
+  policy = templatefile("${path.module}/task-role-policy.tpl", {
     cloudwatch_arn              = var.logs_cloudwatch_group_arn,
     repo_arn                    = var.repo_arn,
     partition                   = data.aws_partition.current.partition,
@@ -157,6 +157,28 @@ resource "aws_iam_role_policy" "task_execution_role_policy" {
     parameter_store_enc_kms_key = var.parameter_store_enc_kms_key
   })
 }
+
+data "aws_iam_policy_document" "ecs_task_execution_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name               = "${var.task_name}-${var.environment}-ecs-task-execution-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
 
 #
 # CloudWatch
@@ -199,7 +221,7 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "1024"
-  execution_role_arn       = aws_iam_role.task_role.arn
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = templatefile("${path.module}/container-definitions.tpl",
     {
