@@ -204,7 +204,7 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
   container_definitions = templatefile("${path.module}/container-definitions.tpl",
     {
       accountID          = data.aws_caller_identity.current.account_id,
-      productARN         = "arn:aws:securityhub:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:product/${data.aws_caller_identity.current.account_id}/default",
+      region             = data.aws_region.current.name,
       rdsARN             = var.rds_arn,
       app_name           = var.app_name,
       environment        = var.environment,

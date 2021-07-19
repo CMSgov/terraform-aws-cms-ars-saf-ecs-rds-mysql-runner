@@ -10,7 +10,7 @@
       {"name": "s3_bucket_path", "value": "${s3_results_bucket}"},
       {"name": "PORT", "value": "${mysql_port}"},
       {"name": "RDSARN", "value": "${rdsARN}"},
-      {"name": "PRODUCTARN", "value": "${productARN}"},
+      {"name": "REGION", "value": "${region}"},
       {"name": "ACCOUNTID", "value": "${accountID}"},
       {"name": "MYSQL_VERSION", "value": "${mysql_version}"},
       {"name": "MYSQL_USERS", "value": "[${join(",",mysql_users)}]"},
