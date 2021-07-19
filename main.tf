@@ -203,6 +203,7 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
 
   container_definitions = templatefile("${path.module}/container-definitions.tpl",
     {
+      enable_securityhub = var.enable_security_hub_integration,
       accountID          = data.aws_caller_identity.current.account_id,
       region             = data.aws_region.current.name,
       rdsARN             = var.rds_arn,

@@ -12,6 +12,7 @@
       {"name": "RDSARN", "value": "${rdsARN}"},
       {"name": "REGION", "value": "${region}"},
       {"name": "ACCOUNTID", "value": "${accountID}"},
+      {"name": "ENABLE_SECURITYHUB", "value": "${enable_securityhub}"},
       {"name": "MYSQL_VERSION", "value": "${mysql_version}"},
       {"name": "MYSQL_USERS", "value": "[${join(",",mysql_users)}]"},
       {"name": "WORKER_CONFIGURED", "value": "${tostring(worker_configured)}"},
