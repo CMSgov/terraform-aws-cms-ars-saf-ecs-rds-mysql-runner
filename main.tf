@@ -1,5 +1,5 @@
 locals {
-  awslogs_group =   split(":", var.logs_cloudwatch_group_arn)[6]
+  awslogs_group = split(":", var.logs_cloudwatch_group_arn)[6]
 }
 
 data "aws_caller_identity" "current" {}
@@ -133,39 +133,28 @@ resource "aws_iam_role_policy" "cloudwatch_target_role_policy" {
   policy = data.aws_iam_policy_document.cloudwatch_target_role_policy_doc.json
 }
 
-resource "aws_iam_role_policy_attachment" "read_only_everything" {
-  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
-  role       = aws_iam_role.task_role.name
-}
-
 resource "aws_iam_role" "task_role" {
   name               = "ecs-task-role-${var.app_name}-${var.environment}-${var.task_name}"
   description        = "Role allowing container definition to execute"
   assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
 }
 
-resource "aws_iam_role" "task_execution_role" {
-  name               = "ecs-task-exec-role-${var.app_name}-${var.environment}-${var.task_name}"
-  description        = "Role allowing ECS tasks to execute"
-  assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
-}
-
-resource "aws_iam_role_policy" "task_execution_role_policy" {
-  name   = "${aws_iam_role.task_execution_role.name}-policy"
-  role   = aws_iam_role.task_execution_role.name
-  policy = templatefile("${path.module}/task-execution-role-policy.tpl", {
-    cloudwatch_arn     = var.logs_cloudwatch_group_arn,
-    repo_arn           = var.repo_arn,
-    partition          = data.aws_partition.current.partition,
-    region             = data.aws_region.current.name,
-    caller_id          = data.aws_caller_identity.current.account_id,
-    app_name           = var.app_name,
-    environment        = var.environment,
-    secretsManager_arn = var.secret_rds_credentials_arn,
-    username_arn       = var.secret_mysql_username_arn,
-    password_arn       = var.secret_mysql_password_arn,
-    hostname_arn       = var.secret_mysql_hostname_arn,
-    parameter_store_enc_kms_key        = var.parameter_store_enc_kms_key
+resource "aws_iam_role_policy" "task_role_policy" {
+  name = "${aws_iam_role.task_role.name}-policy"
+  role = aws_iam_role.task_role.name
+  policy = templatefile("${path.module}/task-role-policy.tpl", {
+    cloudwatch_arn              = var.logs_cloudwatch_group_arn,
+    repo_arn                    = var.repo_arn,
+    partition                   = data.aws_partition.current.partition,
+    region                      = data.aws_region.current.name,
+    caller_id                   = data.aws_caller_identity.current.account_id,
+    app_name                    = var.app_name,
+    environment                 = var.environment,
+    secretsManager_arn          = var.secret_rds_credentials_arn,
+    username_arn                = var.secret_mysql_username_arn,
+    password_arn                = var.secret_mysql_password_arn,
+    hostname_arn                = var.secret_mysql_hostname_arn,
+    parameter_store_enc_kms_key = var.parameter_store_enc_kms_key
   })
 }
 
@@ -210,24 +199,28 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "1024"
-  execution_role_arn       = join("", aws_iam_role.task_execution_role.*.arn)
+  execution_role_arn       = aws_iam_role.task_role.arn
 
   container_definitions = templatefile("${path.module}/container-definitions.tpl",
     {
-      app_name = var.app_name,
-      environment = var.environment,
-      task_name = var.task_name,
-      awslogs_group = local.awslogs_group,
-      awslogs_region = data.aws_region.current.name,
-      repo_url = var.repo_url,
-      repo_tag = var.repo_tag,
-      s3_results_bucket = var.s3_results_bucket,
-      mysql_port = var.mysql_port,
-      mysql_version = var.mysql_version,
-      mysql_users = var.mysql_users,
-      worker_configured = var.worker_configured,
-      admin_users = var.admin_users,
-      read_write_users = var.read_write_users,
+      enable_securityhub = var.enable_security_hub_integration,
+      accountID          = data.aws_caller_identity.current.account_id,
+      region             = data.aws_region.current.name,
+      rdsARN             = var.rds_arn,
+      app_name           = var.app_name,
+      environment        = var.environment,
+      task_name          = var.task_name,
+      awslogs_group      = local.awslogs_group,
+      awslogs_region     = data.aws_region.current.name,
+      repo_url           = var.repo_url,
+      repo_tag           = var.repo_tag,
+      s3_results_bucket  = var.s3_results_bucket,
+      mysql_port         = var.mysql_port,
+      mysql_version      = var.mysql_version,
+      mysql_users        = var.mysql_users,
+      worker_configured  = var.worker_configured,
+      admin_users        = var.admin_users,
+      read_write_users   = var.read_write_users,
       secretsManager_arn = var.secret_rds_credentials_arn,
       username_arn       = var.secret_mysql_username_arn,
       password_arn       = var.secret_mysql_password_arn,
@@ -235,4 +228,3 @@ resource "aws_ecs_task_definition" "scheduled_task_def" {
     }
   )
 }
-

@@ -29,6 +29,16 @@
       ]
     },
     {
+        "Sid": "",
+        "Effect": "Allow",
+        "Action": [
+         "securityhub:BatchImportFindings"
+        ],
+        "Resource": [
+          "arn:${partition}:securityhub:${region}:${caller_id}:product/${caller_id}/default"
+        ]
+    },
+    {
       "Sid": "",
       "Effect": "Allow",
       "Action": [
